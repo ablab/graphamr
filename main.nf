@@ -1,16 +1,144 @@
 #!/usr/bin/env nextflow
+
+nextflow.enable.dsl=2
+
+process PATHRACER {
+    input:
+    path graph
+    path hmm
+
+    output:
+    path 'pathracer'
+
+    publishDir "${params.outdir}", mode:params.publish_dir_mode
+
+    script:
+    """
+    pathracer $hmm $graph --output pathracer --rescore -t $task.cpus
+    """
+}
+
+process EXTRACT_ALL_EDGES {
+    input:
+    path pathracer_dir
+
+    output:
+    path 'all.edges.fa'
+
+    script:
+    """
+    cp ${pathracer_dir}/all.edges.fa all.edges.fa
+    """
+}
+
+process MMSEQS_DB {
+    input:
+    path fasta
+
+    output:
+    path "mmseqs_db"
+
+    if (params.save_mmseqs) {
+        publishDir "${params.outdir}", mode:params.publish_dir_mode
+    }
+
+    script:
+    """
+    mmseqs createdb $fasta mmseqs.db
+    mkdir mmseqs_db && mv mmseqs.db* mmseqs_db
+    """
+}
+
+process EXTRACT_ORFS {
+    input:
+    path mmseqs_db
+
+    output:
+    path "mmseqs_orf_db"
+
+    if (params.save_mmseqs) {
+        publishDir "${params.outdir}", mode:params.publish_dir_mode
+    }
+
+    script:
+    """
+    mmseqs extractorfs $mmseqs_db/mmseqs.db mmseqs.orf.db --threads $task.cpus
+    mkdir mmseqs_orf_db && mv mmseqs.orf.db* mmseqs_orf_db
+    """
+}
+
+process EXTRACT_ORF_FASTA {
+    input:
+    path mmseqs_orf_db
+
+    output:
+    path 'all_orfs.fasta'
+
+    publishDir "${params.outdir}/orfs", mode:params.publish_dir_mode
+
+    script:
+    """
+    mmseqs convert2fasta $mmseqs_orf_db/mmseqs.orf.db all_orfs.fasta
+    """
+}
+
+process MMSEQS_CLUSTER {
+    input:
+    path fasta
+
+    output:
+    path 'orfs_rep_seq.fasta'
+
+    publishDir "${params.outdir}/orfs", mode:params.publish_dir_mode
+
+    script:
+    """
+    mmseqs easy-linclust $fasta orfs tmp --min-seq-id ${params.cluster_idy}
+    """
+}
+
+process ABRICATE {
+    input:
+    path fasta
+
+    output:
+    tuple path('summary.tsv'), path('rep_seq.tsv')
+
+    publishDir "${params.outdir}/abricate", mode:params.publish_dir_mode
+
+    script:
+    """
+    abricate -db ${params.abricate_db} $fasta --threads $task.cpus > rep_seq.tsv
+    abricate --summary rep_seq.tsv > summary.tsv
+    """
+}
+
 /*
-========================================================================================
-                         nf-core/graphamr
-========================================================================================
- nf-core/graphamr Analysis Pipeline.
- #### Homepage / Documentation
- https://github.com/nf-core/graphamr
-----------------------------------------------------------------------------------------
-*/
+ * Parse software version numbers
+ */
+process get_software_versions {
+    publishDir "${params.outdir}/pipeline_info", mode: params.publish_dir_mode,
+        saveAs: { filename ->
+                      if (filename.endsWith(".csv")) filename
+                      else null
+                }
+
+    output:
+    path "software_versions_mqc.yaml"
+    path "software_versions.csv"
+
+    script:
+    """
+    echo $workflow.manifest.version > v_pipeline.txt
+    echo $workflow.nextflow.version > v_nextflow.txt
+    abricate --version > v_abricate.txt
+    echo \$(mmseqs 2>&1) > v_varscan.txt
+    scrape_software_versions.py &> software_versions_mqc.yaml
+    """
+}
+
 
 def helpMessage() {
-    // TODO nf-core: Add to this help message with new command line parameters
     log.info nfcoreHeader()
     log.info"""
 
@@ -18,26 +146,19 @@ def helpMessage() {
 
     The typical command for running the pipeline is as follows:
 
-    nextflow run nf-core/graphamr --input '*_R{1,2}.fastq.gz' -profile docker
+    nextflow run nf-core/graphamr --graph 'assembly_graph_with_scaffolds.gfa' -profile docker
 
     Mandatory arguments:
-      --input [file]                  Path to input data (must be surrounded with quotes)
+      --graph [file]                  Path to input graph in GFA format  (must be surrounded with quotes)
       -profile [str]                  Configuration profile to use. Can use multiple (comma separated)
                                       Available: conda, docker, singularity, test, awsbatch, <institute> and more
 
     Options:
-      --genome [str]                  Name of iGenomes reference
-      --single_end [bool]             Specifies that the input is single-end reads
-
-    References                        If not specified in the configuration file or you wish to overwrite any of the references
-      --fasta [file]                  Path to fasta reference
+      --hmm [str]                     Full path to AMR hmms.
 
     Other options:
       --outdir [file]                 The output directory where the results will be saved
       --publish_dir_mode [str]        Mode for publishing results in the output directory. Available: symlink, rellink, link, copy, copyNoFollow, move (Default: copy)
-      --email [email]                 Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits
-      --email_on_fail [email]         Same as --email, except only send mail if the workflow is not successful
-      --max_multiqc_email_size [str]  Threshold size for MultiQC report to be attached in notification email. If file generated by pipeline exceeds the threshold, it will not be attached (Default: 25MB)
       -name [str]                     Name for the pipeline run. If not specified, Nextflow will automatically generate a random mnemonic
 
     AWSBatch options:
@@ -52,26 +173,6 @@ if (params.help) {
     helpMessage()
     exit 0
 }
-
-/*
- * SET UP CONFIGURATION VARIABLES
- */
-
-// Check if genome exists in the config file
-if (params.genomes && params.genome && !params.genomes.containsKey(params.genome)) {
-    exit 1, "The provided genome '${params.genome}' is not available in the iGenomes file. Currently the available genomes are ${params.genomes.keySet().join(", ")}"
-}
-
-// TODO nf-core: Add any reference files that are needed
-// Configurable reference genomes
-//
-// NOTE - THIS IS NOT USED IN THIS PIPELINE, EXAMPLE ONLY
-// If you want to use the channel below in a process, define the following:
-//   input:
-//   file fasta from ch_fasta
-//
-params.fasta = params.genome ? params.genomes[ params.genome ].fasta ?: false : false
-if (params.fasta) { ch_fasta = file(params.fasta, checkIfExists: true) }
 
 // Has the run name been specified by the user?
 // this has the bonus effect of catching both -name and --name
@@ -91,45 +192,14 @@ if (workflow.profile.contains('awsbatch')) {
     if (params.tracedir.startsWith('s3:')) exit 1, "Specify a local tracedir or run without trace! S3 cannot be used for tracefiles."
 }
 
-// Stage config files
-ch_multiqc_config = file("$projectDir/assets/multiqc_config.yaml", checkIfExists: true)
-ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multiqc_config, checkIfExists: true) : Channel.empty()
-ch_output_docs = file("$projectDir/docs/output.md", checkIfExists: true)
-ch_output_docs_images = file("$projectDir/docs/images/", checkIfExists: true)
-
-/*
- * Create a channel for input read files
- */
-if (params.input_paths) {
-    if (params.single_end) {
-        Channel
-            .from(params.input_paths)
-            .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true) ] ] }
-            .ifEmpty { exit 1, "params.input_paths was empty - no input files supplied" }
-            .into { ch_read_files_fastqc; ch_read_files_trimming }
-    } else {
-        Channel
-            .from(params.input_paths)
-            .map { row -> [ row[0], [ file(row[1][0], checkIfExists: true), file(row[1][1], checkIfExists: true) ] ] }
-            .ifEmpty { exit 1, "params.input_paths was empty - no input files supplied" }
-            .into { ch_read_files_fastqc; ch_read_files_trimming }
-    }
-} else {
-    Channel
-        .fromFilePairs(params.input, size: params.single_end ? 1 : 2)
-        .ifEmpty { exit 1, "Cannot find any reads matching: ${params.input}\nNB: Path needs to be enclosed in quotes!\nIf this is single-end data, please specify --single_end on the command line." }
-        .into { ch_read_files_fastqc; ch_read_files_trimming }
-}
-
 // Header log info
 log.info nfcoreHeader()
 def summary = [:]
 if (workflow.revision) summary['Pipeline Release'] = workflow.revision
 summary['Run Name']         = custom_runName ?: workflow.runName
-// TODO nf-core: Report custom parameters here
-summary['Input']            = params.input
-summary['Fasta Ref']        = params.fasta
-summary['Data Type']        = params.single_end ? 'Single-End' : 'Paired-End'
+summary['Graph']            = params.graph
+summary['HMM']              = params.hmm
+// FIXME: add more params
 summary['Max Resources']    = "$params.max_memory memory, $params.max_cpus cpus, $params.max_time time per job"
 if (workflow.containerEngine) summary['Container'] = "$workflow.containerEngine - $workflow.container"
 summary['Output dir']       = params.outdir
@@ -158,222 +228,15 @@ log.info "-\033[2m--------------------------------------------------\033[0m-"
 // Check the hostnames against configured profiles
 checkHostname()
 
-Channel.from(summary.collect{ [it.key, it.value] })
-    .map { k,v -> "<dt>$k</dt><dd><samp>${v ?: '<span style=\"color:#999999;\">N/A</a>'}</samp></dd>" }
-    .reduce { a, b -> return [a, b].join("\n            ") }
-    .map { x -> """
-    id: 'nf-core-graphamr-summary'
-    description: " - this information is collected when the pipeline is started."
-    section_name: 'nf-core/graphamr Workflow Summary'
-    section_href: 'https://github.com/nf-core/graphamr'
-    plot_type: 'html'
-    data: |
-        <dl class=\"dl-horizontal\">
-            $x
-        </dl>
-    """.stripIndent() }
-    .set { ch_workflow_summary }
+workflow {
+    graph = Channel.fromPath(params.graph, checkIfExists: true)
+    def def_hmm = new File("$projectDir/assets/${params.hmm}")
+    hmm = Channel.fromPath(def_hmm.exists() ? def_hmm : params.hmm, checkIfExists: true)
 
-/*
- * Parse software version numbers
- */
-process get_software_versions {
-    publishDir "${params.outdir}/pipeline_info", mode: params.publish_dir_mode,
-        saveAs: { filename ->
-                      if (filename.indexOf(".csv") > 0) filename
-                      else null
-                }
-
-    output:
-    file 'software_versions_mqc.yaml' into ch_software_versions_yaml
-    file "software_versions.csv"
-
-    script:
-    // TODO nf-core: Get all tools to print their version number here
-    """
-    echo $workflow.manifest.version > v_pipeline.txt
-    echo $workflow.nextflow.version > v_nextflow.txt
-    fastqc --version > v_fastqc.txt
-    multiqc --version > v_multiqc.txt
-    scrape_software_versions.py &> software_versions_mqc.yaml
-    """
+    PATHRACER(graph, hmm) | EXTRACT_ALL_EDGES | MMSEQS_DB | EXTRACT_ORFS | EXTRACT_ORF_FASTA | MMSEQS_CLUSTER | ABRICATE
 }
 
-/*
- * STEP 1 - FastQC
- */
-process fastqc {
-    tag "$name"
-    label 'process_medium'
-    publishDir "${params.outdir}/fastqc", mode: params.publish_dir_mode,
-        saveAs: { filename ->
-                      filename.indexOf(".zip") > 0 ? "zips/$filename" : "$filename"
-                }
-
-    input:
-    set val(name), file(reads) from ch_read_files_fastqc
-
-    output:
-    file "*_fastqc.{zip,html}" into ch_fastqc_results
-
-    script:
-    """
-    fastqc --quiet --threads $task.cpus $reads
-    """
-}
-
-/*
- * STEP 2 - MultiQC
- */
-process multiqc {
-    publishDir "${params.outdir}/MultiQC", mode: params.publish_dir_mode
-
-    input:
-    file (multiqc_config) from ch_multiqc_config
-    file (mqc_custom_config) from ch_multiqc_custom_config.collect().ifEmpty([])
-    // TODO nf-core: Add in log files from your new processes for MultiQC to find!
-    file ('fastqc/*') from ch_fastqc_results.collect().ifEmpty([])
-    file ('software_versions/*') from ch_software_versions_yaml.collect()
-    file workflow_summary from ch_workflow_summary.collectFile(name: "workflow_summary_mqc.yaml")
-
-    output:
-    file "*multiqc_report.html" into ch_multiqc_report
-    file "*_data"
-    file "multiqc_plots"
-
-    script:
-    rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
-    rfilename = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : ''
-    custom_config_file = params.multiqc_config ? "--config $mqc_custom_config" : ''
-    // TODO nf-core: Specify which MultiQC modules to use with -m for a faster run time
-    """
-    multiqc -f $rtitle $rfilename $custom_config_file .
-    """
-}
-
-/*
- * STEP 3 - Output Description HTML
- */
-process output_documentation {
-    publishDir "${params.outdir}/pipeline_info", mode: params.publish_dir_mode
-
-    input:
-    file output_docs from ch_output_docs
-    file images from ch_output_docs_images
-
-    output:
-    file "results_description.html"
-
-    script:
-    """
-    markdown_to_html.py $output_docs -o results_description.html
-    """
-}
-
-/*
- * Completion e-mail notification
- */
 workflow.onComplete {
-
-    // Set up the e-mail variables
-    def subject = "[nf-core/graphamr] Successful: $workflow.runName"
-    if (!workflow.success) {
-        subject = "[nf-core/graphamr] FAILED: $workflow.runName"
-    }
-    def email_fields = [:]
-    email_fields['version'] = workflow.manifest.version
-    email_fields['runName'] = custom_runName ?: workflow.runName
-    email_fields['success'] = workflow.success
-    email_fields['dateComplete'] = workflow.complete
-    email_fields['duration'] = workflow.duration
-    email_fields['exitStatus'] = workflow.exitStatus
-    email_fields['errorMessage'] = (workflow.errorMessage ?: 'None')
-    email_fields['errorReport'] = (workflow.errorReport ?: 'None')
-    email_fields['commandLine'] = workflow.commandLine
-    email_fields['projectDir'] = workflow.projectDir
-    email_fields['summary'] = summary
-    email_fields['summary']['Date Started'] = workflow.start
-    email_fields['summary']['Date Completed'] = workflow.complete
-    email_fields['summary']['Pipeline script file path'] = workflow.scriptFile
-    email_fields['summary']['Pipeline script hash ID'] = workflow.scriptId
-    if (workflow.repository) email_fields['summary']['Pipeline repository Git URL'] = workflow.repository
-    if (workflow.commitId) email_fields['summary']['Pipeline repository Git Commit'] = workflow.commitId
-    if (workflow.revision) email_fields['summary']['Pipeline Git branch/tag'] = workflow.revision
-    email_fields['summary']['Nextflow Version'] = workflow.nextflow.version
-    email_fields['summary']['Nextflow Build'] = workflow.nextflow.build
-    email_fields['summary']['Nextflow Compile Timestamp'] = workflow.nextflow.timestamp
-
-    // TODO nf-core: If not using MultiQC, strip out this code (including params.max_multiqc_email_size)
-    // On success try attach the multiqc report
-    def mqc_report = null
-    try {
-        if (workflow.success) {
-            mqc_report = ch_multiqc_report.getVal()
-            if (mqc_report.getClass() == ArrayList) {
-                log.warn "[nf-core/graphamr] Found multiple reports from process 'multiqc', will use only one"
-                mqc_report = mqc_report[0]
-            }
-        }
-    } catch (all) {
-        log.warn "[nf-core/graphamr] Could not attach MultiQC report to summary email"
-    }
-
-    // Check if we are only sending emails on failure
-    email_address = params.email
-    if (!params.email && params.email_on_fail && !workflow.success) {
-        email_address = params.email_on_fail
-    }
-
-    // Render the TXT template
-    def engine = new groovy.text.GStringTemplateEngine()
-    def tf = new File("$projectDir/assets/email_template.txt")
-    def txt_template = engine.createTemplate(tf).make(email_fields)
-    def email_txt = txt_template.toString()
-
-    // Render the HTML template
-    def hf = new File("$projectDir/assets/email_template.html")
-    def html_template = engine.createTemplate(hf).make(email_fields)
-    def email_html = html_template.toString()
-
-    // Render the sendmail template
-    def smail_fields = [ email: email_address, subject: subject, email_txt: email_txt, email_html: email_html, projectDir: "$projectDir", mqcFile: mqc_report, mqcMaxSize: params.max_multiqc_email_size.toBytes() ]
-    def sf = new File("$projectDir/assets/sendmail_template.txt")
-    def sendmail_template = engine.createTemplate(sf).make(smail_fields)
-    def sendmail_html = sendmail_template.toString()
-
-    // Send the HTML e-mail
-    if (email_address) {
-        try {
-            if (params.plaintext_email) { throw GroovyException('Send plaintext e-mail, not HTML') }
-            // Try to send HTML e-mail using sendmail
-            [ 'sendmail', '-t' ].execute() << sendmail_html
-            log.info "[nf-core/graphamr] Sent summary e-mail to $email_address (sendmail)"
-        } catch (all) {
-            // Catch failures and try with plaintext
-            def mail_cmd = [ 'mail', '-s', subject, '--content-type=text/html', email_address ]
-            if ( mqc_report.size() <= params.max_multiqc_email_size.toBytes() ) {
-              mail_cmd += [ '-A', mqc_report ]
-            }
-            mail_cmd.execute() << email_html
-            log.info "[nf-core/graphamr] Sent summary e-mail to $email_address (mail)"
-        }
-    }
-
-    // Write summary e-mail HTML to a file
-    def output_d = new File("${params.outdir}/pipeline_info/")
-    if (!output_d.exists()) {
-        output_d.mkdirs()
-    }
-    def output_hf = new File(output_d, "pipeline_report.html")
-    output_hf.withWriter { w -> w << email_html }
-    def output_tf = new File(output_d, "pipeline_report.txt")
-    output_tf.withWriter { w -> w << email_txt }
-
-    c_green = params.monochrome_logs ? '' : "\033[0;32m";
-    c_purple = params.monochrome_logs ? '' : "\033[0;35m";
-    c_red = params.monochrome_logs ? '' : "\033[0;31m";
-    c_reset = params.monochrome_logs ? '' : "\033[0m";
-
     if (workflow.stats.ignoredCount > 0 && workflow.success) {
         log.info "-${c_purple}Warning, pipeline completed, but with errored process(es) ${c_reset}-"
         log.info "-${c_red}Number of ignored errored process(es) : ${workflow.stats.ignoredCount} ${c_reset}-"
@@ -388,7 +251,6 @@ workflow.onComplete {
     }
 
 }
-
 
 def nfcoreHeader() {
     // Log colors ANSI codes
