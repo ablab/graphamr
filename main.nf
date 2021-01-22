@@ -2,142 +2,6 @@
 
 nextflow.enable.dsl=2
 
-process PATHRACER {
-    input:
-    path graph
-    path hmm
-
-    output:
-    path 'pathracer'
-
-    publishDir "${params.outdir}", mode:params.publish_dir_mode
-
-    script:
-    """
-    pathracer $hmm $graph --output pathracer --rescore -t $task.cpus
-    """
-}
-
-process EXTRACT_ALL_EDGES {
-    input:
-    path pathracer_dir
-
-    output:
-    path 'all.edges.fa'
-
-    script:
-    """
-    cp ${pathracer_dir}/all.edges.fa all.edges.fa
-    """
-}
-
-process MMSEQS_DB {
-    input:
-    path fasta
-
-    output:
-    path "mmseqs_db"
-
-    if (params.save_mmseqs) {
-        publishDir "${params.outdir}", mode:params.publish_dir_mode
-    }
-
-    script:
-    """
-    mmseqs createdb $fasta mmseqs.db
-    mkdir mmseqs_db && mv mmseqs.db* mmseqs_db
-    """
-}
-
-process EXTRACT_ORFS {
-    input:
-    path mmseqs_db
-
-    output:
-    path "mmseqs_orf_db"
-
-    if (params.save_mmseqs) {
-        publishDir "${params.outdir}", mode:params.publish_dir_mode
-    }
-
-    script:
-    """
-    mmseqs extractorfs $mmseqs_db/mmseqs.db mmseqs.orf.db --threads $task.cpus
-    mkdir mmseqs_orf_db && mv mmseqs.orf.db* mmseqs_orf_db
-    """
-}
-
-process EXTRACT_ORF_FASTA {
-    input:
-    path mmseqs_orf_db
-
-    output:
-    path 'all_orfs.fasta'
-
-    publishDir "${params.outdir}/orfs", mode:params.publish_dir_mode
-
-    script:
-    """
-    mmseqs convert2fasta $mmseqs_orf_db/mmseqs.orf.db all_orfs.fasta
-    """
-}
-
-process MMSEQS_CLUSTER {
-    input:
-    path fasta
-
-    output:
-    path 'orfs_rep_seq.fasta'
-
-    publishDir "${params.outdir}/orfs", mode:params.publish_dir_mode
-
-    script:
-    """
-    mmseqs easy-linclust $fasta orfs tmp --min-seq-id ${params.cluster_idy}
-    """
-}
-
-process ABRICATE {
-    input:
-    path fasta
-
-    output:
-    tuple path('summary.tsv'), path('rep_seq.tsv')
-
-    publishDir "${params.outdir}/abricate", mode:params.publish_dir_mode
-
-    script:
-    """
-    abricate -db ${params.abricate_db} $fasta --threads $task.cpus > rep_seq.tsv
-    abricate --summary rep_seq.tsv > summary.tsv
-    """
-}
-
-/*
- * Parse software version numbers
- */
-process get_software_versions {
-    publishDir "${params.outdir}/pipeline_info", mode: params.publish_dir_mode,
-        saveAs: { filename ->
-                      if (filename.endsWith(".csv")) filename
-                      else null
-                }
-
-    output:
-    path "software_versions_mqc.yaml"
-    path "software_versions.csv"
-
-    script:
-    """
-    echo $workflow.manifest.version > v_pipeline.txt
-    echo $workflow.nextflow.version > v_nextflow.txt
-    abricate --version > v_abricate.txt
-    echo \$(mmseqs 2>&1) > v_varscan.txt
-    scrape_software_versions.py &> software_versions_mqc.yaml
-    """
-}
-
-
 def helpMessage() {
     log.info nfcoreHeader()
     log.info"""
@@ -227,6 +91,34 @@ log.info "-\033[2m--------------------------------------------------\033[0m-"
 
 // Check the hostnames against configured profiles
 checkHostname()
+
+/*
+ * Parse software version numbers
+ */
+process get_software_versions {
+    publishDir "${params.outdir}/pipeline_info", mode: params.publish_dir_mode,
+        saveAs: { filename ->
+                      if (filename.endsWith(".csv")) filename
+                      else null
+                }
+
+    output:
+    path "software_versions_mqc.yaml"
+    path "software_versions.csv"
+
+    script:
+    """
+    echo $workflow.manifest.version > v_pipeline.txt
+    echo $workflow.nextflow.version > v_nextflow.txt
+    abricate --version > v_abricate.txt
+    echo \$(mmseqs 2>&1) > v_varscan.txt
+    scrape_software_versions.py &> software_versions_mqc.yaml
+    """
+}
+
+include { PATHRACER; EXTRACT_ALL_EDGES } from './modules/pathracer'
+include { MMSEQS_DB; EXTRACT_ORFS; EXTRACT_ORF_FASTA; MMSEQS_CLUSTER } from './modules/mmseqs'
+include { ABRICATE } from './modules/abricate.nf'
 
 workflow {
     graph = Channel.fromPath(params.graph, checkIfExists: true)
