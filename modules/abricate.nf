@@ -9,7 +9,7 @@ process ABRICATE {
 
     script:
     """
-    abricate -db ${params.abricate_db} $fasta --threads $task.cpus > rep_seq.tsv
+    abricate -db ${params.abricate_db} $fasta --threads $task.cpus --minid ${params.abricate_minid} --mincov ${params.abricate_mincov} > rep_seq.tsv
     abricate --summary rep_seq.tsv > summary.tsv
     """
 }
