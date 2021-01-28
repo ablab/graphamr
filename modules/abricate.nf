@@ -8,8 +8,15 @@ process ABRICATE {
     publishDir "${params.outdir}/abricate", mode:params.publish_dir_mode
 
     script:
+    if (params.abricate_datadir) {
     """
-    abricate -db ${params.abricate_db} $fasta --threads $task.cpus --minid ${params.abricate_minid} --mincov ${params.abricate_mincov} > rep_seq.tsv
+    abricate -db ${params.abricate_db} $fasta --threads $task.cpus --minid ${params.abricate_minid} --mincov ${params.abricate_mincov} --datadir ${params.abricate_datadir}  > rep_seq.tsv
     abricate --summary rep_seq.tsv > summary.tsv
     """
+    } else {
+    """
+    abricate -db ${params.abricate_db} $fasta --threads $task.cpus --minid ${params.abricate_minid} --mincov ${params.abricate_mincov}  > rep_seq.tsv
+    abricate --summary rep_seq.tsv > summary.tsv
+    """
+    }
 }
