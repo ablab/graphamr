@@ -19,6 +19,11 @@ def helpMessage() {
 
     Options:
       --hmm [str]                     Full path to AMR hmms.
+    
+    Abricate options:
+      --abricate_db [str]             Database to use (comma separated)
+      --abricate_minid [number]       Minimum DNA %identity
+      --abricate_mincov [number]      Minimum DNA %coverage
 
     Other options:
       --outdir [file]                 The output directory where the results will be saved
