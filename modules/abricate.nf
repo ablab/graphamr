@@ -12,11 +12,13 @@ process ABRICATE {
     """
     abricate -db ${params.abricate_db} $fasta --threads $task.cpus --minid ${params.abricate_minid} --mincov ${params.abricate_mincov} --datadir ${params.abricate_datadir}  > rep_seq.tsv
     abricate --summary rep_seq.tsv > summary.tsv
+    extract_gene_fasta.py rep_seq.tsv $fasta
     """
     } else {
     """
     abricate -db ${params.abricate_db} $fasta --threads $task.cpus --minid ${params.abricate_minid} --mincov ${params.abricate_mincov}  > rep_seq.tsv
     abricate --summary rep_seq.tsv > summary.tsv
+    extract_gene_fasta.py rep_seq.tsv $fasta
     """
     }
 }
