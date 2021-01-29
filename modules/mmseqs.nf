@@ -63,3 +63,17 @@ process MMSEQS_CLUSTER {
     mmseqs easy-linclust $fasta orfs tmp --min-seq-id ${params.cluster_idy}
     """
 }
+process CHANGE_NAME {
+    input:
+    path fasta
+
+    output:
+    path 'orfs_rep_seq_new.fasta'
+
+    publishDir "${params.outdir}/orfs", mode:params.publish_dir_mode
+
+    script:
+    """
+    change_name.py $fasta orfs_rep_seq_new.fasta
+    """
+}
