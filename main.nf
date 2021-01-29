@@ -122,7 +122,7 @@ process get_software_versions {
 }
 
 include { PATHRACER; EXTRACT_ALL_EDGES } from './modules/pathracer'
-include { MMSEQS_DB; EXTRACT_ORFS; EXTRACT_ORF_FASTA; MMSEQS_CLUSTER } from './modules/mmseqs'
+include { MMSEQS_DB; EXTRACT_ORFS; EXTRACT_ORF_FASTA; MMSEQS_CLUSTER; CHANGE_NAME } from './modules/mmseqs'
 include { ABRICATE } from './modules/abricate.nf'
 
 workflow {
@@ -130,7 +130,7 @@ workflow {
     def def_hmm = new File("$projectDir/assets/${params.hmm}")
     hmm = Channel.fromPath(def_hmm.exists() ? def_hmm : params.hmm, checkIfExists: true)
 
-    PATHRACER(graph, hmm) | EXTRACT_ALL_EDGES | MMSEQS_DB | EXTRACT_ORFS | EXTRACT_ORF_FASTA | MMSEQS_CLUSTER | ABRICATE
+    PATHRACER(graph, hmm) | EXTRACT_ALL_EDGES | MMSEQS_DB | EXTRACT_ORFS | EXTRACT_ORF_FASTA | MMSEQS_CLUSTER | CHANGE_NAME | ABRICATE
 }
 
 workflow.onComplete {
