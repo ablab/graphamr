@@ -13,7 +13,8 @@ def helpMessage() {
     nextflow run nf-core/graphamr --graph 'assembly_graph_with_scaffolds.gfa' -profile docker
 
     Mandatory arguments:
-      --graph [file]                  Path to input graph in GFA format  (must be surrounded with quotes)
+      --reads [str]                   Path to input reads in FASTQ format (comma separated, must be surrounded with quotes). Mandatory when --graph not supplied
+      --graph [file]                  Path to input graph in GFA format  (must be surrounded with quotes). Mandatory when --reads not supplied
       -profile [str]                  Configuration profile to use. Can use multiple (comma separated)
                                       Available: conda, docker, singularity, test, awsbatch, <institute> and more
 
@@ -120,18 +121,24 @@ process get_software_versions {
     scrape_software_versions.py &> software_versions_mqc.yaml
     """
 }
-
 include { PATHRACER; EXTRACT_ALL_EDGES } from './modules/pathracer'
 include { MMSEQS_DB; EXTRACT_ORFS; EXTRACT_ORF_FASTA; MMSEQS_CLUSTER; CHANGE_NAME } from './modules/mmseqs'
 include { ABRICATE } from './modules/abricate.nf'
-
 workflow {
-    graph = Channel.fromPath(params.graph, checkIfExists: true)
     def def_hmm = new File("$projectDir/assets/${params.hmm}")
     hmm = Channel.fromPath(def_hmm.exists() ? def_hmm : params.hmm, checkIfExists: true)
+        if (params.reads){
+            include { SPADES } from './modules/spades.nf'
+            input_reads = Channel.fromFilePairs(params.reads,size: -1)
+            SPADES(input_reads)
+            graph = SPADES.out.graph
+        } else {
+            graph = Channel.fromPath(params.graph, checkIfExists: true)
+        }
 
     PATHRACER(graph, hmm) | EXTRACT_ALL_EDGES | MMSEQS_DB | EXTRACT_ORFS | EXTRACT_ORF_FASTA | MMSEQS_CLUSTER | CHANGE_NAME | ABRICATE
 }
+
 
 workflow.onComplete {
     if (workflow.stats.ignoredCount > 0 && workflow.success) {
