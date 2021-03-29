@@ -126,16 +126,16 @@ include { MMSEQS_DB; EXTRACT_ORFS; EXTRACT_ORF_FASTA; MMSEQS_CLUSTER; CHANGE_NAM
 include { ABRICATE } from './modules/abricate.nf'
 workflow {
     def def_hmm = new File("$projectDir/assets/${params.hmm}")
-    hmm = Channel.fromPath(def_hmm.exists() ? def_hmm : params.hmm, checkIfExists: true)
-        if (params.reads){
-            include { SPADES } from './modules/spades.nf'
-            input_reads = Channel.fromFilePairs(params.reads,size: -1)
-            SPADES(input_reads)
-            graph = SPADES.out.graph
-        } else {
-            graph = Channel.fromPath(params.graph, checkIfExists: true)
-        }
+    if (params.reads) {
+        include { SPADES } from './modules/spades.nf'
+        input_reads = Channel.fromFilePairs(params.reads,size: -1)
+        SPADES(input_reads)
+        graph = SPADES.out.graph
+    } else {
+        graph = Channel.fromPath(params.graph, checkIfExists: true)
+    }
 
+    hmm = Channel.fromPath(def_hmm.exists() ? def_hmm : params.hmm, checkIfExists: true)
     PATHRACER(graph, hmm) | EXTRACT_ALL_EDGES | MMSEQS_DB | EXTRACT_ORFS | EXTRACT_ORF_FASTA | MMSEQS_CLUSTER | CHANGE_NAME | ABRICATE
 }
 
