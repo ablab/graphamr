@@ -20,7 +20,7 @@ def helpMessage() {
 
     Options:
       --hmm [str]                     Full path to AMR hmms.
-    
+
     Abricate options:
       --abricate_db [str]             Database to use (comma separated)
       --abricate_minid [number]       Minimum DNA %identity
@@ -121,24 +121,31 @@ process get_software_versions {
     scrape_software_versions.py &> software_versions_mqc.yaml
     """
 }
-include { PATHRACER; EXTRACT_ALL_EDGES } from './modules/pathracer'
-include { MMSEQS_DB; EXTRACT_ORFS; EXTRACT_ORF_FASTA; MMSEQS_CLUSTER; CHANGE_NAME } from './modules/mmseqs'
-include { ABRICATE } from './modules/abricate.nf'
+
+include { PATHRACER; } from './modules/local/pathracer' addParams(options: [:])
+include { MMSEQS_DB; EXTRACT_ORFS; EXTRACT_ORF_FASTA; MMSEQS_CLUSTER; } from './modules/local/mmseqs' addParams(options: [:])
+include { ABRICATE } from './modules/local/abricate'
 workflow {
-    def def_hmm = new File("$projectDir/assets/${params.hmm}")
+    def def_hmm = file("$projectDir/assets/${params.hmm}")
+    hmm = file(def_hmm.exists() ? def_hmm : params.hmm)
+    if (!hmm.exists())
+        exit 1, "ERROR: Please check input HMM ${params.hmm} does not exist"
+
+    ch_graph = Channel.empty()
     if (params.reads) {
-        include { SPADES } from './modules/spades.nf'
-        input_reads = Channel.fromFilePairs(params.reads,size: -1)
-        SPADES(input_reads)
-        graph = SPADES.out.graph
+        include { SPADES } from './modules/nf-core/software/spades/main.nf' addParams(spades_hmm: false, options: ['args': '--meta'])
+        input_reads =
+            Channel.fromFilePairs(params.reads,size: -1)
+            .map{ item -> [ [id : item[0], single_end : false], item[1] ] }
+        SPADES(input_reads, [], false)
+        ch_graph = SPADES.out.gfa
     } else {
-        graph = Channel.fromPath(params.graph, checkIfExists: true)
+        ch_graph = Channel.fromPath(params.graph, checkIfExists: true)
+            .map{ item -> [ [id : file(item).getBaseName(), single_end : false], item ] }
     }
 
-    hmm = Channel.fromPath(def_hmm.exists() ? def_hmm : params.hmm, checkIfExists: true)
-    PATHRACER(graph, hmm) | EXTRACT_ALL_EDGES | MMSEQS_DB | EXTRACT_ORFS | EXTRACT_ORF_FASTA | MMSEQS_CLUSTER | CHANGE_NAME | ABRICATE
+    PATHRACER(ch_graph, hmm).all_edges | MMSEQS_DB | EXTRACT_ORFS | EXTRACT_ORF_FASTA | MMSEQS_CLUSTER | ABRICATE
 }
-
 
 workflow.onComplete {
     if (workflow.stats.ignoredCount > 0 && workflow.success) {
