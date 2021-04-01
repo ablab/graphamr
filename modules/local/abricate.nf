@@ -34,7 +34,7 @@ process ABRICATE_SUMMARIZE {
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
     
     input:
-    path('*.rep_seq.tsv')
+    path('?.rep_seq.tsv')
 
     output:
     path('all.summary.tsv'), emit: summary
