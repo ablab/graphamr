@@ -19,7 +19,7 @@ def helpMessage() {
                                       Available: conda, docker, singularity, test, awsbatch, <institute> and more
 
     Options:
-      --hmm [str]                     Full path to AMR hmms.
+      --hmm [str]                     Full path to AMR hmms
 
     Abricate options:
       --abricate_db [str]             Database to use (comma separated)
