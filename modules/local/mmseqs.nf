@@ -55,7 +55,7 @@ process MMSEQS_CLUSTER {
     tuple val(meta), path(fasta)
 
     output:
-    tuple val(meta), path('*.orfs_rep_seq.fasta')
+    tuple val(meta), path('*.orfs_rep_seq.fasta'), emit: orfs_rep_seq
 
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,

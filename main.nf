@@ -123,8 +123,9 @@ process get_software_versions {
 }
 
 include { PATHRACER; } from './modules/local/pathracer' addParams(options: [:])
-include { MMSEQS_DB; MMSEQS_EXTRACT_ORFS; MMSEQS_CLUSTER } from './modules/local/mmseqs' addParams(options: [:])
-include { ABRICATE; ABRICATE_SUMMARIZE } from './modules/local/abricate'
+include { CLUSTER_ORFS } from './subworkflows/local/cluster_orfs.nf' addParams(options: [:])
+include { ARG } from './subworkflows/local/arg.nf' addParams(options: [:])
+
 workflow {
     def def_hmm = file("$projectDir/assets/${params.hmm}")
     hmm = file(def_hmm.exists() ? def_hmm : params.hmm)
@@ -144,8 +145,7 @@ workflow {
             .map{ item -> [ [id : file(item).getBaseName(), single_end : false], item ] }
     }
 
-    PATHRACER(ch_graph, hmm).all_edges | MMSEQS_DB | MMSEQS_EXTRACT_ORFS | MMSEQS_CLUSTER | ABRICATE
-    ABRICATE.out.rep_seq.collect{ it[1] } | ABRICATE_SUMMARIZE
+    PATHRACER(ch_graph, hmm).all_edges | CLUSTER_ORFS | ARG
 }
 
 workflow.onComplete {
