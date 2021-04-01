@@ -1,4 +1,5 @@
 include { SPADES } from '../../modules/nf-core/software/spades/main.nf' addParams(spades_hmm: false, options: ['args': '--meta'])
+include { FASTQC } from '../../modules/nf-core/software/fastqc/main.nf' addParams(options: [:])
 
 
 workflow ASSEMBLY {
@@ -11,7 +12,9 @@ workflow ASSEMBLY {
         .filter { meta, fastq -> !meta.single_end }
         .set { ch_reads }
 
+    FASTQC(ch_reads)
     SPADES(ch_reads, [], false)
+    
 
     // Filter for empty scaffold files
     SPADES
