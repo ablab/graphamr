@@ -24,5 +24,5 @@ inputSeqFile.close()
 for d in dic.keys():
     new_fasta=[]
     for k in dic[d]:
-      new_fasta.append(SeqDict[k])
-   SeqIO.write(new_fasta, '{}.fasta'.format(d), 'fasta')
+        new_fasta.append(SeqDict[k])
+    SeqIO.write(new_fasta, '{}.fasta'.format(d), 'fasta')
