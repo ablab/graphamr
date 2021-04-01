@@ -133,12 +133,12 @@ workflow {
 
     ch_graph = Channel.empty()
     if (params.reads) {
-        include { SPADES } from './modules/nf-core/software/spades/main.nf' addParams(spades_hmm: false, options: ['args': '--meta'])
+        include { ASSEMBLY } from './subworkflows/local/assembly.nf' addParams(options : [:])
         input_reads =
             Channel.fromFilePairs(params.reads,size: -1)
             .map{ item -> [ [id : item[0], single_end : false], item[1] ] }
-        SPADES(input_reads, [], false)
-        ch_graph = SPADES.out.gfa
+        ASSEMBLY(input_reads)
+        ch_graph = ASSEMBLY.out.gfa
     } else {
         ch_graph = Channel.fromPath(params.graph, checkIfExists: true)
             .map{ item -> [ [id : file(item).getBaseName(), single_end : false], item ] }
