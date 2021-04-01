@@ -27,3 +27,20 @@ process ABRICATE {
     extract_gene_fasta.py ${prefix}.rep_seq.tsv $fasta
     """
 }
+
+process ABRICATE_SUMMARIZE {
+    publishDir "${params.outdir}",
+        mode: params.publish_dir_mode,
+        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
+    
+    input:
+    path('*.rep_seq.tsv')
+
+    output:
+    path('all.summary.tsv'), emit: summary
+
+    script:
+    """
+    abricate --summary *.rep_seq.tsv > all.summary.tsv
+    """
+}

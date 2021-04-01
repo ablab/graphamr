@@ -11,7 +11,7 @@ process MMSEQS_DB {
     tuple val(meta), path(fasta)
     
     output:
-    tuple val(meta), path('*.mmseqs_db'), emit : mmseqs_db
+    tuple val(meta), path('*.mmseqs_db'), emit: mmseqs_db
 
     if (params.save_mmseqs) {
         publishDir "${params.outdir}",
@@ -27,46 +27,24 @@ process MMSEQS_DB {
     """
 }
 
-process EXTRACT_ORFS {
+process MMSEQS_EXTRACT_ORFS {
     tag "$meta.id"
 
     input:
     tuple val(meta), path(mmseqs_db)
 
     output:
-    tuple val(meta), path('*.mmseqs_orf_db'), emit: mmseqs_orf_db
+    tuple val(meta), path('*.all_orfs.fasta'), emit: orfs
 
-    if (params.save_mmseqs) {
-        publishDir "${params.outdir}",
-            mode: params.publish_dir_mode,
-            saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:meta.id) }
-    }
+    publishDir "${params.outdir}",
+        mode: params.publish_dir_mode,
+        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:'orfs', publish_id:meta.id) }
 
     script:
     def prefix = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     """
     mmseqs extractorfs $mmseqs_db/mmseqs.db mmseqs.orf.db --threads $task.cpus
-    mkdir ${prefix}.mmseqs_orf_db && mv mmseqs.orf.db* ${prefix}.mmseqs_orf_db
-    """
-}
-
-process EXTRACT_ORF_FASTA {
-    tag "$meta.id"
-
-    input:
-    tuple val(meta), path(mmseqs_orf_db)
-
-    output:
-    tuple val(meta), path('*.all_orfs.fasta')
-
-    publishDir "${params.outdir}/orfs",
-        mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:meta.id) }
-
-    script:
-    def prefix = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
-    """
-    mmseqs convert2fasta $mmseqs_orf_db/mmseqs.orf.db ${prefix}.all_orfs.fasta
+    mmseqs convert2fasta mmseqs.orf.db ${prefix}.all_orfs.fasta
     """
 }
 
@@ -79,9 +57,9 @@ process MMSEQS_CLUSTER {
     output:
     tuple val(meta), path('*.orfs_rep_seq.fasta')
 
-    publishDir "${params.outdir}/orfs",
+    publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
-        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:meta.id) }
+        saveAs: { filename -> saveFiles(filename:filename, options:params.options,  publish_dir:'orfs', publish_id:meta.id) }
 
     script:
     def prefix = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
