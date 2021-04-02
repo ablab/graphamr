@@ -10,7 +10,7 @@ def helpMessage() {
 
     The typical command for running the pipeline is as follows:
 
-    nextflow run nf-core/graphamr --graph 'assembly_graph_with_scaffolds.gfa' -profile docker
+    nextflow run graphamr --graph 'assembly_graph_with_scaffolds.gfa' -profile docker
 
     Mandatory arguments:
       --reads [str]                   Path to input reads in FASTQ format (comma separated, must be surrounded with quotes). Mandatory when --graph not supplied
@@ -27,9 +27,9 @@ def helpMessage() {
       --abricate_mincov [number]      Minimum DNA %coverage
 
     Other options:
+      -name [str]                     Name for the pipeline run. If not specified, Nextflow will automatically generate a random mnemonic
       --outdir [file]                 The output directory where the results will be saved
       --publish_dir_mode [str]        Mode for publishing results in the output directory. Available: symlink, rellink, link, copy, copyNoFollow, move (Default: copy)
-      -name [str]                     Name for the pipeline run. If not specified, Nextflow will automatically generate a random mnemonic
 
     AWSBatch options:
       --awsqueue [str]                The AWSBatch JobQueue that needs to be set when running on AWSBatch
@@ -156,10 +156,10 @@ workflow.onComplete {
     }
 
     if (workflow.success) {
-        log.info "-${c_purple}[nf-core/graphamr]${c_green} Pipeline completed successfully${c_reset}-"
+        log.info "-${c_purple}[graphamr]${c_green} Pipeline completed successfully${c_reset}-"
     } else {
         checkHostname()
-        log.info "-${c_purple}[nf-core/graphamr]${c_red} Pipeline completed with errors${c_reset}-"
+        log.info "-${c_purple}[graphamr]${c_red} Pipeline completed with errors${c_reset}-"
     }
 
 }
@@ -182,7 +182,7 @@ def nfcoreHeader() {
     ${c_blue}  |\\ | |__  __ /  ` /  \\ |__) |__         ${c_yellow}}  {${c_reset}
     ${c_blue}  | \\| |       \\__, \\__/ |  \\ |___     ${c_green}\\`-._,-`-,${c_reset}
                                             ${c_green}`._,._,\'${c_reset}
-    ${c_purple}  nf-core/graphamr v${workflow.manifest.version}${c_reset}
+    ${c_purple}  graphamr v${workflow.manifest.version}${c_reset}
     -${c_dim}--------------------------------------------------${c_reset}-
     """.stripIndent()
 }
