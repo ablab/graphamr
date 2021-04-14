@@ -5,6 +5,7 @@ channels:
   - conda-forge
   - bioconda
   - defaults
+  - lgpdevtools
 dependencies:
   - conda-forge::python=3.7.3
   - conda-forge::markdown=3.1.1
@@ -15,3 +16,4 @@ dependencies:
   - bioconda::pathracer=3.15.0.dev
   - bioconda::abricate
   - bioconda::mmseqs2
+  - lgpdevtools::srax
