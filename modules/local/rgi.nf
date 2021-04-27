@@ -25,7 +25,7 @@ process RGI {
 
     """
 
-    rgi main -i $fasta -o ./${prefix} --clean -n 16
+    rgi main -i $fasta -o ./${prefix} --clean -n $task.cpus
 
     """
 }
