@@ -1,5 +1,13 @@
 #!/usr/bin/env nextflow
 
+/*
+========================================================================================
+    nf-core/graphamr
+========================================================================================
+    Github : https://github.com/ablab/nf-core-graphamr
+----------------------------------------------------------------------------------------
+ */
+
 nextflow.enable.dsl=2
 
 log.info Headers.nf_core(workflow, params.monochrome_logs)
@@ -68,11 +76,7 @@ summary['Config Files'] = workflow.configFiles.join(', ')
 if (params.email || params.email_on_fail) {
     summary['E-mail Address']    = params.email
     summary['E-mail on failure'] = params.email_on_fail
-    summary['MultiQC maxsize']   = params.max_multiqc_email_size
 }
-
-// Check the hostnames against configured profiles
-checkHostname()
 
 /*
  * Parse software version numbers
@@ -187,9 +191,6 @@ workflow.onComplete {
         } catch (all) {
             // Catch failures and try with plaintext
             def mail_cmd = [ 'mail', '-s', subject, '--content-type=text/html', email_address ]
-            if ( mqc_report.size() <= params.max_multiqc_email_size.toBytes() ) {
-              mail_cmd += [ '-A', mqc_report ]
-            }
             mail_cmd.execute() << email_html
             log.info "[nf-core/graphamr] Sent summary e-mail to $email_address (mail)"
         }
