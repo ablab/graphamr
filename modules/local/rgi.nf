@@ -34,6 +34,8 @@ process RGI_HEATMAP {
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
 
+    conda (params.enable_conda ? "python=3.6 bioconda::rgi=5.1.1" : null)
+
     input:
     path('?.json')
 
