@@ -37,7 +37,7 @@ process RGI_HEATMAP {
     conda (params.enable_conda ? "python=3.6 bioconda::rgi=5.1.1" : null)
 
     input:
-    path('?.json')
+    path json
 
     output:
     path('*.png'), emit: heatmap
@@ -45,7 +45,7 @@ process RGI_HEATMAP {
     script:
     """
     mkdir json
-    cp *.json ./json
-    rgi heatmap -i ./json -o rgi_heatmap
+    cp ${json.join(' ')} json
+    rgi heatmap -i json -o heatmap
     """
 }
