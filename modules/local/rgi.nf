@@ -4,7 +4,6 @@ include { initOptions; saveFiles; getSoftwareName } from './functions'
 params.options = [:]
 options        = initOptions(params.options)
 
-
 process RGI {
     tag "$meta.id"
 
@@ -12,7 +11,7 @@ process RGI {
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:meta.id) }
 
-    conda (params.enable_conda ? "bioconda::rgi=5.1.1" : null)
+    conda (params.enable_conda ? "python=3.6 bioconda::rgi=5.1.1" : null)
 
     input:
     tuple val(meta), path(fasta)
@@ -25,7 +24,7 @@ process RGI {
 
     """
 
-    rgi main -i $fasta -o ./${prefix} --clean -n $task.cpus
+    rgi main -i $fasta -o ${prefix} --clean -n $task.cpus
 
     """
 }
