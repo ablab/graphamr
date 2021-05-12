@@ -18,14 +18,14 @@ process RGI {
 
     output:
     tuple val(meta), path('*.json'), emit: json
+    tuple val(meta), path('*.txt'), emit: txt
 
     script:
     def prefix  = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
 
     """
 
-    rgi main -i $fasta -o ${prefix} --clean -n $task.cpus
-
+    rgi main -i $fasta -o ${prefix} --clean -n $task.cpus --alignment_tool DIAMOND --input_type contig
     """
 }
 
