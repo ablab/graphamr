@@ -16,4 +16,3 @@ dependencies:
   - bioconda::pathracer=3.15.0.dev
   - bioconda::abricate
   - bioconda::mmseqs2
-  - lgpdevtools::srax
