@@ -13,8 +13,17 @@ The directories listed below will be created in the results directory after the 
 The pipeline is built using [Nextflow](https://www.nextflow.io/)
 and processes data using the following steps:
 
+
 * [FastQC](#fastqc) - Read quality control
-* [MultiQC](#multiqc) - Aggregate report describing results from the whole pipeline
+* [metaSPAdes](#metaspades) - Assembly metagenome and building graph 
+
+The first two steps are required only if the reads are used
+
+* [Pathracer](#pathracer) - Aligning HMM profile to graph
+* [MMseqs2](#mmseqs2) - Detection and clustering ORFs
+* [Abricate](#abricate) - Annotation representative sequences
+* [RGI](#rgi) - Annotation representative sequences
+* [sraX](#srax) - Annotation representative sequences
 * [Pipeline information](#pipeline-information) - Report metrics generated during the workflow execution
 
 ## FastQC
@@ -30,22 +39,69 @@ For further reading and documentation see the [FastQC help pages](http://www.bio
 * `fastqc/zips/`
   * `*_fastqc.zip`: Zip archive containing the FastQC report, tab-delimited data file and plot images.
 
-> **NB:** The FastQC plots displayed in the MultiQC report shows _untrimmed_ reads. They may contain adapter sequence and potentially regions with low quality.
 
-## MultiQC
+## metaSPAdes
 
-[MultiQC](http://multiqc.info) is a visualization tool that generates a single HTML report summarizing all samples in your project. Most of the pipeline QC results are visualised in the report and further statistics are available in the report data directory.
-
-The pipeline has special steps which also allow the software versions to be reported in the MultiQC output for future traceability.
-
-For more information about how to use MultiQC reports, see [https://multiqc.info](https://multiqc.info).
+[metaSPAdes](https://github.com/ablab/spades)  is an de Bruijn graph-based assembly tool.
 
 **Output files:**
 
-* `multiqc/`
-  * `multiqc_report.html`: a standalone HTML file that can be viewed in your web browser.
-  * `multiqc_data/`: directory containing parsed statistics from the different tools used in the pipeline.
-  * `multiqc_plots/`: directory containing static images from the report in various formats.
+* `spades/`
+  * `*.assembly.gfa`: SPAdes assembly graph and scaffolds paths in GFA 1.0 format
+  * `*.contigs.fa`: resulting contigs
+  * `*.scaffolds.fa`: resulting scaffolds
+  * `*.spades.log`: SPAdes log
+
+
+## Pathracer
+
+[Pathracer](https://cab.spbu.ru/software/pathracer/) is a novel standalone tool that aligns profile HMM directly to the assembly graph. The tool provides the set of most probable paths traversed by a HMM through the whole assembly graph, regardless whether the sequence of interested is encoded on the single contig or scattered across the set of edges, therefore significantly improving the recovery of sequences of interest even from fragmented metagenome assemblies.
+
+**Output files:**
+
+* `pathracer/`
+  * `*.all.edges.fa`: unique edge paths for all pHMMs in one file
+  * `*.pathracer.log`: log file
+
+## MMseqs2
+
+[MMseqs2](https://github.com/soedinglab/MMseqs2) is a software suite to search and cluster huge protein and nucleotide sequence sets. The `extractorfs` module uses to detect all open reading frames (ORFs) on all six frames. For clustering `easy-linclust` module are used. 
+
+**Output files:**
+
+* `orfs/`
+  * `*.all_orfs.fasta`: all open reading frames (ORFs) on all six frames in one file
+  * `*.orfs_rep_seq.fasta`: representative sequences
+
+## Abricate
+
+[Abricate](https://github.com/tseemann/abricate) is used for mass screening of contigs for antimicrobial resistance or virulence genes. Please see the [Abricate docs](https://github.com/tseemann/abricate/blob/master/README.md) for more detailed information regarding the output files.
+
+**Output files:**
+
+* `abricate/`
+  * `*.rep_seq.tsv`: a tap-separated output file with results
+  * `all.summary.tsv`: representative sequences
+
+## RGI 
+
+[RGI](https://github.com/arpcard/rgi) is used to predict resistome(s) from protein or nucleotide data based on homology and SNP models. The application uses reference data from the [Comprehensive Antibiotic Resistance Database (CARD).](https://card.mcmaster.ca/) Please see the [RGI docs]  (https://github.com/arpcard/rgi#rgi-main-tab-delimited-output-details) for more detailed information regarding the output files.
+
+**Output files:**
+
+* `rgi/`
+  * `*.json`: json format file with results
+  * `*.txt`: a tap-separated output file with results
+  * `*.png`: a heat map from pre-compiled RGI main JSON files, samples and AMR genes organized alphabetically
+
+## sraX
+
+[sraX](https://github.com/lgpdevtools/sraX) is used to systematically detect the presence of AMR determinants and, ultimately, describe the repertoire of antibiotic resistance genes (ARGs) within a collection of genomes (the “resistome” analysis).
+
+**Output files:**
+
+* `rgi/`
+  * `Results/`: directory containing HTML report, plots and summary files
 
 ## Pipeline information
 
