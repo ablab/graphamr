@@ -85,7 +85,7 @@ For further reading and documentation see the [FastQC help pages](http://www.bio
 
 ## RGI 
 
-[RGI](https://github.com/arpcard/rgi) is used to predict resistome(s) from protein or nucleotide data based on homology and SNP models. The application uses reference data from the [Comprehensive Antibiotic Resistance Database (CARD).](https://card.mcmaster.ca/) Please see the [RGI docs]  (https://github.com/arpcard/rgi#rgi-main-tab-delimited-output-details) for more detailed information regarding the output files.
+[RGI](https://github.com/arpcard/rgi) is used to predict resistome(s) from protein or nucleotide data based on homology and SNP models. The application uses reference data from the [Comprehensive Antibiotic Resistance Database (CARD).](https://card.mcmaster.ca/) Please see the [RGI docs] (https://github.com/arpcard/rgi#rgi-main-tab-delimited-output-details) for more detailed information regarding the output files.
 
 **Output files:**
 
