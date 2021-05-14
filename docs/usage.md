@@ -131,7 +131,7 @@ The sequence identity threshold for clustering [0,1]
 
 ### `--abricate_db`
 
-Use this to specify the path to databases for abricate
+Use this to specify database to use 
 
 ### `--abricate_minid`
 
