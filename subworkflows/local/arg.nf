@@ -8,7 +8,7 @@ workflow ARG {
 
     main:
     ABRICATE(fasta)
-    ABRICATE.out.rep_seq.collect{ it[1] } | ABRICATE_SUMMARIZE
+    ABRICATE.out.report.collect{ it[1] } | ABRICATE_SUMMARIZE
 
     SRAX(fasta.collect { it[1] })
 
