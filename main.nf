@@ -129,7 +129,6 @@ workflow {
 }
 
 workflow.onComplete {
-
     // Set up the e-mail variables
     def subject = "[nf-core/graphamr] Successful: $workflow.runName"
     if (!workflow.success) {
