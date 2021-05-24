@@ -39,7 +39,7 @@ nextflow pull nf-core/graphamr
 
 It's a good idea to specify a pipeline version when running the pipeline on your data. This ensures that a specific version of the pipeline code and software are used when you run your pipeline. If you keep using the same tag, you'll be running the same version of the pipeline, even if there have been changes to the code since.
 
-First, go to the [nf-core/graphamr releases page](https://github.com/nf-core/graphamr/releases) and find the latest version number - numeric only (eg. `1.3.1`). Then specify this when running the pipeline with `-r` (one hyphen) - eg. `-r 1.3.1`.
+First, go to the [nf-core/graphamr releases page](https://github.com/ablab/nf-core-graphamr/releases) and find the latest version number - numeric only (eg. `1.3.1`). Then specify this when running the pipeline with `-r` (one hyphen) - eg. `-r 1.3.1`.
 
 This version number will be logged in reports when you run the pipeline, so that you'll know what you used when you look back in the future.
 
@@ -51,28 +51,11 @@ This version number will be logged in reports when you run the pipeline, so that
 
 Use this parameter to choose a configuration profile. Profiles can give configuration presets for different compute environments.
 
-Several generic profiles are bundled with the pipeline which instruct the pipeline to use software packaged using different methods (Docker, Singularity, Podman, Shifter, Charliecloud, Conda) - see below.
-
-> We highly recommend the use of Docker or Singularity containers for full pipeline reproducibility, however when this is not possible, Conda is also supported.
-
-The pipeline also dynamically loads configurations from [https://github.com/nf-core/configs](https://github.com/nf-core/configs) when it runs, making multiple config profiles for various institutional clusters available at run time. For more information and to see if your system is available in these configs please see the [nf-core/configs documentation](https://github.com/nf-core/configs#documentation).
-
-Note that multiple profiles can be loaded, for example: `-profile test,docker` - the order of arguments is important!
-They are loaded in sequence, so later profiles can overwrite earlier profiles.
+For the present Conda profile is bundled with the pipeline which instruct the pipeline to use software packaged using different methods.
 
 If `-profile` is not specified, the pipeline will run locally and expect all software to be installed and available on the `PATH`. This is _not_ recommended.
 
-* `docker`
-  * A generic configuration profile to be used with [Docker](https://docker.com/)
-  * Pulls software from Docker Hub: [`nfcore/graphamr`](https://hub.docker.com/r/nfcore/graphamr/)
-* `singularity`
-  * A generic configuration profile to be used with [Singularity](https://sylabs.io/docs/)
-  * Pulls software from Docker Hub: [`nfcore/graphamr`](https://hub.docker.com/r/nfcore/graphamr/)
-* `podman`
-  * A generic configuration profile to be used with [Podman](https://podman.io/)
-  * Pulls software from Docker Hub: [`nfcore/graphamr`](https://hub.docker.com/r/nfcore/graphamr/)
 * `conda`
-  * Please only use Conda as a last resort i.e. when it's not possible to run the pipeline with Docker, Singularity, Podman, Shifter or Charliecloud.
   * A generic configuration profile to be used with [Conda](https://conda.io/docs/)
   * Pulls most software from [Bioconda](https://bioconda.github.io/)
 * `test`
@@ -125,13 +108,17 @@ Use this to specify the location of your input HMM file. For example:
 
 ## Other options
 
-### `--min-seq-id` 
+### `--cluster_idy` 
 
 The sequence identity threshold for clustering [0,1]
 
+### `--abricate_datadir`
+
+Use this to specify databases folder
+
 ### `--abricate_db`
 
-Use this to specify database to use 
+Use this to specify database to use
 
 ### `--abricate_minid`
 
@@ -140,6 +127,7 @@ Minimum DNA %identity [0,100]
 ### `--abricate_mincov` 
 
 Minimum DNA %coverage [0,100]
+
 
 ## Other command line parameters
 

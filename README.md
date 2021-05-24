@@ -25,22 +25,22 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
 3. Download the pipeline and test it on a minimal dataset with a single command:
 
     ```bash
-    nextflow run nf-core/graphamr -profile test,<docker/singularity/conda>
+    nextflow run nf-core/graphamr -profile <conda>
     ```
 
-    > Please check [nf-core/configs](https://github.com/nf-core/configs#documentation) to see if a custom config file to run nf-core pipelines already exists for your Institute. If so, you can simply use `-profile <institute>` in your command. This will enable either `docker` or `singularity` and set the appropriate execution settings for your local compute environment.
+    > Please check [nf-core/configs](https://github.com/nf-core/configs#documentation) to see if a custom config file to run nf-core pipelines already exists.
 
 4. Start running your own analysis!
     > Typical command for analysis using reads:
 
     ```bash
-    nextflow run nf-core/graphamr -profile <docker/singularity/podman/conda/institute> --reads '*_R{1,2}.fastq.gz' --hmm '*.HMM'
+    nextflow run nf-core/graphamr -profile <conda> --reads '*_R{1,2}.fastq.gz' --hmm '*.HMM'
     ```
 
     > Typical command for analysis using graph:
 
     ```bash
-    nextflow run nf-core/graphamr -profile <docker/singularity/podman/conda/institute> --graph '*.gfa' --hmm '*.HMM'
+    nextflow run nf-core/graphamr -profile <conda> --graph '*.gfa' --hmm '*.HMM'
     ```
 
 
@@ -61,12 +61,12 @@ By default, the pipeline currently performs the following:
 * Aligning HMM profile to graph (`Pathracer`)
 * Detection and clustering ORFs (`MMseqs2`)
 * Annotation representative sequences (`Abricate, RGI, sraX`)
-
+* Summarizing results (`hAMRonization`)
 
 
 ## Documentation
 
-The nf-core/graphamr pipeline comes with documentation about the pipeline: [usage](https://nf-co.re/graphamr/usage) and [output](https://nf-co.re/graphamr/output).
+The nf-core/graphamr pipeline comes with documentation about the pipeline: [usage](https://github.com/ablab/nf-core-graphamr/blob/dev/docs/usage.md) and [output](https://github.com/ablab/nf-core-graphamr/blob/dev/docs/output.md).
 
 <!-- TODO nf-core: Add a brief overview of what the pipeline does and how it works -->
 

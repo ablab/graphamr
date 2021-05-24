@@ -24,6 +24,7 @@ The first two steps are required only if the reads are used
 * [Abricate](#abricate) - Annotation representative sequences
 * [RGI](#rgi) - Annotation representative sequences
 * [sraX](#srax) - Annotation representative sequences
+* [hAMRonization](#hamronization) - Summarizing results
 * [Pipeline information](#pipeline-information) - Report metrics generated during the workflow execution
 
 ## FastQC
@@ -102,6 +103,18 @@ For further reading and documentation see the [FastQC help pages](http://www.bio
 
 * `rgi/`
   * `Results/`: directory containing HTML report, plots and summary files
+
+## hAMRonization
+
+[hAMRonization](https://github.com/pha4ge/hAMRonization) is used to combine and summarize the results. 
+
+**Output files:**
+
+* `hamronize/`
+  * `*_abricate_hamronized.tsv`: a tab-separated abricate report
+  * `*_rgi_hamronized.tsv`: a tab-separated rgi report
+  * `amr_summary.tsv`: general report
+  * `amr_summary.html`: general HTML report
 
 ## Pipeline information
 
