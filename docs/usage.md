@@ -1,12 +1,4 @@
-# nf-core/graphamr: Usage
-
-## :warning: Please read this documentation on the nf-core website: [https://nf-co.re/graphamr/usage](https://nf-co.re/graphamr/usage)
-
-> _Documentation of pipeline parameters is generated automatically from the pipeline schema and can no longer be found in markdown files._
-
-## Introduction
-
-<!-- TODO nf-core: Add documentation about anything specific to running your pipeline. For general topics, please point to (and add to) the main nf-core website. -->
+# ablab/graphamr: Usage
 
 ## Running the pipeline
 
@@ -39,7 +31,7 @@ nextflow pull nf-core/graphamr
 
 It's a good idea to specify a pipeline version when running the pipeline on your data. This ensures that a specific version of the pipeline code and software are used when you run your pipeline. If you keep using the same tag, you'll be running the same version of the pipeline, even if there have been changes to the code since.
 
-First, go to the [nf-core/graphamr releases page](https://github.com/ablab/nf-core-graphamr/releases) and find the latest version number - numeric only (eg. `1.3.1`). Then specify this when running the pipeline with `-r` (one hyphen) - eg. `-r 1.3.1`.
+First, go to the [ablab/graphamr releases page](https://github.com/ablab/graphamr/releases) and find the latest version number - numeric only (eg. `1.3.1`). Then specify this when running the pipeline with `-r` (one hyphen) - eg. `-r 1.3.1`.
 
 This version number will be logged in reports when you run the pipeline, so that you'll know what you used when you look back in the future.
 
