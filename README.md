@@ -1,16 +1,12 @@
-# ![nf-core/graphamr](docs/images/nf-core-graphamr_logo.png)
-
 **Antimicrobial Resistance Gene Detection from Metagenome Assembly Graphs**.
 
-[![GitHub Actions CI Status](https://github.com/nf-core/graphamr/workflows/nf-core%20CI/badge.svg)](https://github.com/nf-core/graphamr/actions)
-[![GitHub Actions Linting Status](https://github.com/nf-core/graphamr/workflows/nf-core%20linting/badge.svg)](https://github.com/nf-core/graphamr/actions)
 [![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A520.04.0-brightgreen.svg)](https://www.nextflow.io/)
 
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg)](https://bioconda.github.io/)
 
 ## Introduction
 
-**nf-core/graphamr** is a bioinformatics best-practise analysis pipeline for recovery and identification of antibiotic resistance genes from fragmented metagenomic assemblies. The pipeline involves the alignment of profile hidden Markov models of target genes directly to the assembly graph of a metagenome with further dereplication and annotation of the results using state-of-the art tools. The pipeline supports reads or assembly graph as input. For reads the pipeline does quality control and assembles metagenome and builds graph.    
+**ablab/graphamr** is a bioinformatics best-practise analysis pipeline for recovery and identification of antibiotic resistance genes from fragmented metagenomic assemblies. The pipeline involves the alignment of profile hidden Markov models of target genes directly to the assembly graph of a metagenome with further dereplication and annotation of the results using state-of-the art tools. The pipeline supports reads or assembly graph as input. For reads the pipeline does quality control and assembles metagenome and builds graph.    
 
 The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool to run tasks across multiple compute infrastructures in a very portable manner. It comes with docker containers making installation trivial and results highly reproducible. The Nextflow DSL2 implementation of this pipeline uses one container per process which makes it much easier to maintain and update software dependencies.
 
