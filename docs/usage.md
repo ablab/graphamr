@@ -5,10 +5,9 @@
 The typical command for running the pipeline is as follows:
 
 ```bash
-nextflow run nf-core/graphamr --input '*_R{1,2}.fastq.gz' -profile docker
+nextflow run ablab/graphamr --input '*_R{1,2}.fastq.gz' -profile conda
 ```
 
-This will launch the pipeline with the `docker` configuration profile. See below for more information about profiles.
 
 Note that the pipeline will create the following files in your working directory:
 
@@ -24,7 +23,7 @@ results         # Finished results (configurable, see below)
 When you run the above command, Nextflow automatically pulls the pipeline code from GitHub and stores it as a cached version. When running the pipeline after this, it will always use the cached version if available - even if the pipeline has been updated since. To make sure that you're running the latest version of the pipeline, make sure that you regularly update the cached version of the pipeline:
 
 ```bash
-nextflow pull nf-core/graphamr
+nextflow pull ablab/graphamr
 ```
 
 ### Reproducibility
@@ -166,10 +165,6 @@ Specify this when restarting a pipeline. Nextflow will used cached results from 
 
 You can also supply a run name to resume a specific run: `-resume [run-name]`. Use the `nextflow log` command to show previous run names.
 
-### `-c`
-
-Specify the path to a specific config file (this is a core Nextflow command). See the [nf-core website documentation](https://nf-co.re/usage/configuration) for more information.
-
 #### Custom resource requests
 
 Each step in the pipeline has a default set of requirements for number of CPUs, memory and time. For most of the steps in the pipeline, if the job exits with an error code of `143` (exceeded requested resources) it will automatically resubmit with higher requests (2 x original, then 3 x original). If it still fails after three times then the pipeline is stopped.
@@ -187,9 +182,6 @@ process {
 To find the exact name of a process you wish to modify the compute resources, check the live-status of a nextflow run displayed on your terminal or check the nextflow error for a line like so: `Error executing process > 'bwa'`. In this case the name to specify in the custom config file is `bwa`.
 
 See the main [Nextflow documentation](https://www.nextflow.io/docs/latest/config.html) for more information.
-
-If you are likely to be running `nf-core` pipelines regularly it may be a good idea to request that your custom config file is uploaded to the `nf-core/configs` git repository. Before you do this please can you test that the config file works with your pipeline of choice using the `-c` parameter (see definition above). You can then create a pull request to the `nf-core/configs` repository with the addition of your config file, associated documentation file (see examples in [`nf-core/configs/docs`](https://github.com/nf-core/configs/tree/master/docs)), and amending [`nfcore_custom.config`](https://github.com/nf-core/configs/blob/master/nfcore_custom.config) to include your custom profile.
-
 
 
 ### Running in the background

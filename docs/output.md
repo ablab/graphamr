@@ -1,4 +1,4 @@
-# nf-core/graphamr: Output
+# ablab/graphamr: Output
 
 ## Introduction
 

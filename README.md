@@ -14,25 +14,25 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
 
 1. Install [`nextflow`](https://nf-co.re/usage/installation)
 
-2. Install any of [`Confa`](https://conda.io/miniconda.html) for full pipeline reproducibility 
+2. Install any of [`Conda`](https://conda.io/miniconda.html) for full pipeline reproducibility 
 
 3. Download the pipeline and test it on a minimal dataset with a single command:
 
     ```bash
-    nextflow run nf-core/graphamr -profile <conda>
+    nextflow run ablab/graphamr -profile test,<conda>
     ```
 
 4. Start running your own analysis!
     > Typical command for analysis using reads:
 
     ```bash
-    nextflow run nf-core/graphamr -profile <conda> --reads '*_R{1,2}.fastq.gz' --hmm '*.HMM'
+    nextflow run ablab/graphamr -profile <conda> --reads '*_R{1,2}.fastq.gz' --hmm '*.HMM'
     ```
 
     > Typical command for analysis using graph:
 
     ```bash
-    nextflow run nf-core/graphamr -profile <conda> --graph '*.gfa' --hmm '*.HMM'
+    nextflow run ablab/graphamr -profile <conda> --graph '*.gfa' --hmm '*.HMM'
     ```
 
 
