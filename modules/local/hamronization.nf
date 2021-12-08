@@ -11,7 +11,7 @@ process HAMRONIZE_ABRICATE {
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:meta.id) }
 
-    conda (params.enable_conda ? "hamronization=1.0.3" : null)
+    conda (params.enable_conda ? "bioconda::hamronization=1.0.3" : null)
 
     input:
     tuple val(meta), path(report)
@@ -33,7 +33,7 @@ process HAMRONIZE_RGI {
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:meta.id) }
 
-    conda (params.enable_conda ? "hamronization=1.0.3" : null)
+    conda (params.enable_conda ? "bioconda::hamronization=1.0.3" : null)
 
     input:
     tuple val(meta), path(report)
@@ -48,10 +48,31 @@ process HAMRONIZE_RGI {
     """
 }
 
+process HAMRONIZE_SRAX {
+
+    publishDir "${params.outdir}",
+        mode: params.publish_dir_mode,
+        saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:meta.id) }
+
+    conda (params.enable_conda ? "bioconda::hamronization=1.0.3" : null)
+
+    input:
+    tuple val(meta), path(report)
+
+    output:
+    tuple val(meta), path('*.tsv'), emit: hamronized
+
+    script:
+    def prefix  = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
+    """
+    hamronize srax ${report} --input_file_name ${prefix} --reference_database_version db_v_1 --analysis_software_version tool_v_1 --reference_database_id srax_default --output ${prefix}_srax_hamronized.tsv
+    """
+}
+
 process HAMRONIZE_SUMMARIZE {
     publishDir "${params.outdir}", mode: params.publish_dir_mode
 
-    conda (params.enable_conda ? "hamronization=1.0.3" : null)
+    conda (params.enable_conda ? "bioconda::hamronization=1.0.3" : null)
 
     input:
     path('?.tsv')

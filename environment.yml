@@ -14,5 +14,4 @@ dependencies:
   # TODO nf-core: Add required software dependencies here
   - bioconda::multiqc=1.10.1
   - bioconda::pathracer=3.15.0.dev
-  - bioconda::abricate
   - bioconda::mmseqs2

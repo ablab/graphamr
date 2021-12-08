@@ -10,7 +10,9 @@ process ABRICATE {
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:meta.id) }
-
+    
+    conda (params.enable_conda ? "bioconda::abricate=1.0.1" : null)
+    
     input:
     tuple val(meta), path(fasta)
 
@@ -31,7 +33,9 @@ process ABRICATE_SUMMARIZE {
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:'') }
-    
+   
+    conda (params.enable_conda ? "bioconda::abricate=1.0.1" : null)
+
     input:
     path('?.tsv')
 
