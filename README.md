@@ -35,6 +35,13 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
     nextflow run ablab/graphamr -profile <conda> --graph '*.gfa' --hmm '*.HMM'
     ```
 
+    The pipeline has the ability to download the [`NCBI AMR HMMs`](https://ftp.ncbi.nlm.nih.gov/pathogen/Antimicrobial_resistance/AMRFinder/data/latest/AMR.LIB) or [`CARD`](https://card.mcmaster.ca/latest/data) databases.
+
+    >Typical command for analysis with downloaded database:
+
+    ```bash
+    nextflow run ablab/graphamr -profile <conda> --graph '*.gfa' --db ['ncbi_AMR_HMM', 'card_AA']
+    ```
 
 
 See [usage docs](docs/) for all of the available options when running the pipeline.

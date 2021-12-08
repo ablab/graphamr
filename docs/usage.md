@@ -90,6 +90,9 @@ Use this to specify the location of your input HMM file. For example:
 
 ## Other options
 
+### `--db`
+Use this to specify database to use for Pathracer: ncbi_AMR_HMM or card_AA [default: 'ncbi_AMR_HMM']
+
 ### `--cluster_idy` 
 
 The sequence identity threshold for clustering [0,1]

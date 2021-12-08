@@ -107,10 +107,26 @@ include { CLUSTER_ORFS } from './subworkflows/local/cluster_orfs.nf' addParams(o
 include { ARG } from './subworkflows/local/arg.nf' addParams(options: [:])
 
 workflow {
+    type = false
+
     def def_hmm = file("$projectDir/assets/${params.hmm}")
-    hmm = file(def_hmm.exists() ? def_hmm : params.hmm)
-    if (!hmm.exists())
-        exit 1, "ERROR: Please check input HMM ${params.hmm} does not exist"
+    input_database = file(def_hmm.exists() ? def_hmm : params.hmm)
+
+    if (params.aa) {
+        input_database = Channel.fromPath(params.aa, checkIfExists: true)
+        type = true
+    } 
+    
+    if (params.db == 'ncbi_AMR_HMM') {
+        include { GET_NCBI_AMR_HMM } from './modules/local/pathracer' addParams(options: [:])
+        GET_NCBI_AMR_HMM()
+        input_database = GET_NCBI_AMR_HMM.out.hmm
+    } else if (params.db == 'card_AA') {
+        include { CARD_AA } from './modules/local/pathracer' addParams(options: [:])
+        CARD_AA()
+        input_database = CARD_AA.out.aa
+        type = true
+    }
 
     ch_graph = Channel.empty()
     if (params.reads) {
@@ -125,7 +141,7 @@ workflow {
             .map{ item -> [ [id : file(item).getBaseName(), single_end : false], item ] }
     }
 
-    PATHRACER(ch_graph, hmm).all_edges | CLUSTER_ORFS | ARG
+    PATHRACER(ch_graph, input_database, type).all_edges | CLUSTER_ORFS | ARG
 }
 
 workflow.onComplete {

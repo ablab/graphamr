@@ -47,6 +47,11 @@
                     "default": "NCBIfam-AMR.HMM.gz",
                     "description": "AMR HMM to use"
                 },
+                "aa": {
+                    "type": "string",
+                    "default": "null",
+                    "description": "AMR AA to use"
+                },
                 "save_mmseqs": {
                     "type": "string",
                     "description": "Save MMseqs output directory / databases"
@@ -74,6 +79,25 @@
                 "abricate_datadir": {
                     "type": "string",
                     "description": "Abricate directory with databases"
+                },
+                "component_max_size": {
+                    "type": "number",
+                    "description": "Maximal component size to consider"
+                },
+                "db": {
+                    "type": "string",
+                    "default": "ncbi_AMR_HMM",
+                    "description": "Pathracer database to use"
+                },
+                "pathracer_e_value": {
+                    "type": "number",
+                    "default": 0.000001,
+                    "description": "Report sequences <= this E-value threshold in output"
+                },
+                "aligned_HMM_length": {
+                    "type": "number",
+                    "default": 0.9,
+                    "description": "Minimal length of resultant matched sequence"
                 }
             }
         },
