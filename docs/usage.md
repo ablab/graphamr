@@ -113,6 +113,18 @@ Minimum DNA %identity [0,100]
 
 Minimum DNA %coverage [0,100]
 
+### `--component_max_size` 
+
+Maximal component size to consider
+
+### `--pathracer_e_value` 
+
+Report sequences <= this E-value threshold in output
+
+### `--aligned_HMM_length` 
+
+Minimal length of resultant matched sequence [0,1]
+
 
 ## Other command line parameters
 

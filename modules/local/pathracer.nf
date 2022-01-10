@@ -36,8 +36,6 @@ process PATHRACER {
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), publish_id:meta.id) }
 
-    conda (params.enable_conda ? "bioconda::pathracer=3.15.0.dev" : null)
-
     input:
     tuple val(meta), path(graph)
     path  input
@@ -51,10 +49,11 @@ process PATHRACER {
     def prefix      = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     def type = amino_acid ? "--aa" : ""
     def component_size = params.component_max_size ? "--max-size ${params.component_max_size}" : ""
+    def length = params.aligned_HMM_length ? "-l ${params.aligned_HMM_length}" : ""
 
 
     """
-    pathracer $input $graph --output ./ --rescore -t $task.cpus $component_size -E ${params.pathracer_e_value} $type
+    pathracer $input $graph --output ./ --rescore -t $task.cpus $component_size -E ${params.pathracer_e_value} $type $length
     mv pathracer.log ${prefix}.pathracer.log
     mv all.edges.fa ${prefix}.all.edges.fa
     """
