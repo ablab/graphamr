@@ -13,5 +13,5 @@ dependencies:
   - conda-forge::pygments=2.9.0
   # TODO nf-core: Add required software dependencies here
   - bioconda::multiqc=1.10.1
-  - bioconda::pathracer=3.15.0.dev
+  - bioconda::pathracer=3.16.0.dev
   - bioconda::mmseqs2
