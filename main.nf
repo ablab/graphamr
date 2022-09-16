@@ -235,7 +235,6 @@ workflow.onComplete {
     if (workflow.success) {
         log.info "-${c_purple}[graphamr]${c_green} Pipeline completed successfully${c_reset}-"
     } else {
-        checkHostname()
         log.info "-${c_purple}[graphamr]${c_red} Pipeline completed with errors${c_reset}-"
     }
 
