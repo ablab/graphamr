@@ -105,6 +105,9 @@ process get_software_versions {
 include { PATHRACER; } from './modules/local/pathracer' addParams(options: [:])
 include { CLUSTER_ORFS } from './subworkflows/local/cluster_orfs.nf' addParams(options: [:])
 include { ARG } from './subworkflows/local/arg.nf' addParams(options: [:])
+include { GET_NCBI_AMR_HMM } from './modules/local/pathracer' addParams(options: [:])
+include { CARD_AA } from './modules/local/pathracer' addParams(options: [:])
+include { ASSEMBLY } from './subworkflows/local/assembly.nf' addParams(options : [:])
 
 workflow {
     type = false
@@ -118,11 +121,9 @@ workflow {
     } 
     
     if (params.db == 'ncbi_AMR_HMM') {
-        include { GET_NCBI_AMR_HMM } from './modules/local/pathracer' addParams(options: [:])
         GET_NCBI_AMR_HMM()
         input_database = GET_NCBI_AMR_HMM.out.hmm
     } else if (params.db == 'card_AA') {
-        include { CARD_AA } from './modules/local/pathracer' addParams(options: [:])
         CARD_AA()
         input_database = CARD_AA.out.aa
         type = true
@@ -130,7 +131,6 @@ workflow {
 
     ch_graph = Channel.empty()
     if (params.reads) {
-        include { ASSEMBLY } from './subworkflows/local/assembly.nf' addParams(options : [:])
         input_reads =
             Channel.fromFilePairs(params.reads,size: -1)
             .map{ item -> [ [id : item[0], single_end : false], item[1] ] }
